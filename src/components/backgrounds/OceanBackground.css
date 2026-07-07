@@ -1,0 +1,284 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PREMIUM UNDERWATER BACKGROUND SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Layer Container Base - NO will-change permanently */
+.ocean-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 1: Deep Gradient Background
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-1 {
+    background: linear-gradient(135deg,
+            #060b15 0%,
+            #0a0f1c 20%,
+            #0d1420 40%,
+            #0a0f1c 60%,
+            #051829 80%,
+            #060b15 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 20s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 2: Animated Underwater Texture - OPTIMIZED (SLOWER)
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-2 {
+    background: repeating-linear-gradient(90deg,
+            transparent 0px,
+            rgba(100, 180, 220, 0.03) 2px,
+            rgba(100, 180, 220, 0.05) 4px,
+            transparent 8px);
+    animation: textureFlow 60s linear infinite;
+    mix-blend-mode: screen;
+    opacity: 0.3;
+}
+
+@keyframes textureFlow {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(50px, 100px, 0);
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 3: Wave Shadows - OPTIMIZED (SLOWER)
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-3 {
+    background: radial-gradient(ellipse 800px 200px at 50% 30%,
+            rgba(50, 120, 180, 0.12) 0%,
+            rgba(50, 120, 180, 0.06) 40%,
+            transparent 70%);
+    animation: waveShadowShift 50s ease-in-out infinite;
+    mix-blend-mode: multiply;
+}
+
+@keyframes waveShadowShift {
+    0% {
+        transform: translate3d(0, -50px, 0);
+    }
+
+    50% {
+        transform: translate3d(30px, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(0, -50px, 0);
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 4: Underwater Fog - STATIC (NO ANIMATION FOR PERFORMANCE)
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-4 {
+    background: radial-gradient(circle at 50% 60%,
+            rgba(80, 140, 180, 0.08) 0%,
+            rgba(60, 110, 160, 0.04) 50%,
+            transparent 100%);
+    mix-blend-mode: screen;
+    opacity: 0.5;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 5: Light Rays - DISABLED FOR PERFORMANCE
+   ─────────────────────────────────────────────────────────────────── */
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 6: Floating Particles - PURE CSS ANIMATION
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-6 {
+    mix-blend-mode: screen;
+    opacity: 0.6;
+}
+
+.particle {
+    box-shadow: 0 0 3px rgba(100, 180, 220, 0.4);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
+@keyframes particleFloat {
+
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: translate3d(0, -18px, 0);
+        opacity: 0.6;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 7: Soft Glow Gradients - STATIC (NO ANIMATION FOR PERFORMANCE)
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-7 {
+    background: radial-gradient(circle at 30% 40%,
+            rgba(80, 150, 200, 0.08) 0%,
+            transparent 50%),
+        radial-gradient(circle at 70% 60%,
+            rgba(100, 180, 220, 0.06) 0%,
+            transparent 50%),
+        radial-gradient(circle at 50% 100%,
+            rgba(120, 180, 220, 0.05) 0%,
+            transparent 60%);
+    mix-blend-mode: screen;
+    opacity: 0.35;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 8: Subtle Vignette
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-8 {
+    background: radial-gradient(ellipse at center,
+            transparent 30%,
+            rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 9: Caustic Light Patterns - DISABLED FOR PERFORMANCE
+   ─────────────────────────────────────────────────────────────────── */
+
+/* ───────────────────────────────────────────────────────────────────
+   LAYER 10: Ambient Glow - STATIC
+   ─────────────────────────────────────────────────────────────────── */
+.ocean-layer-ambient {
+    background: radial-gradient(circle at center,
+            rgba(80, 160, 200, 0.05) 0%,
+            rgba(60, 140, 180, 0.025) 40%,
+            transparent 100%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PERFORMANCE OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* GPU Acceleration */
+.ocean-background {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+.ocean-layer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .ocean-layer-1 {
+        animation: none;
+    }
+
+    .ocean-layer-2 {
+        animation: none;
+    }
+
+    .ocean-layer-3 {
+        animation: none;
+    }
+
+    .ocean-layer-4 {
+        animation: none;
+    }
+
+    .ocean-layer-5 {
+        animation: none;
+    }
+
+    .ocean-layer-7 {
+        animation: none;
+    }
+
+    .ocean-layer-caustics {
+        animation: none;
+    }
+
+    .particle {
+        animation: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE ADJUSTMENTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+    .ocean-layer-5 {
+        opacity: 0.4;
+    }
+}
+
+@media (max-width: 768px) {
+    .ocean-layer-5 {
+        opacity: 0.35;
+    }
+
+    .ocean-layer-6 {
+        opacity: 0.4;
+    }
+}
+
+@media (max-width: 480px) {
+    .ocean-layer-2 {
+        opacity: 0.3;
+    }
+
+    .ocean-layer-3 {
+        opacity: 0.3;
+    }
+
+    .ocean-layer-5 {
+        opacity: 0.3;
+    }
+
+    .ocean-layer-6 {
+        opacity: 0.3;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTENT READABILITY OVERLAY
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Ensure content is always readable */
+@supports selector(:backdrop-filter) {
+
+    main,
+    .navbar,
+    footer {
+        /* These maintain their own styling */
+    }
+}
