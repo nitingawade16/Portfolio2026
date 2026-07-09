@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { m } from "framer-motion";
 import { Mail, MapPin, BookOpen, Briefcase } from "lucide-react";
 import { Github, Linkedin, Instagram } from "@/components/ui/CustomIcons";
