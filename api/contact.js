@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { supabase } from './_lib/supabase.js';
+import crypto from 'crypto';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -38,20 +39,32 @@ export default async function handler(req, res) {
 
         // 3. Insert into Supabase
         if (supabase) {
-            const { error: dbError } = await supabase
-                .from('messages')
-                .insert([
-                    {
-                        full_name: name,
-                        email: email,
-                        subject: subject,
-                        message: message,
-                    }
-                ]);
+            try {
+                // Generate id and created_at in JS to bypass potentially broken DB defaults (which cause 25P02 transaction aborted errors)
+                const newId = crypto.randomUUID();
+                const now = new Date().toISOString();
 
-            if (dbError) {
-                console.error('Supabase Insert Error:', dbError);
-                return res.status(500).json({ error: 'Failed to save message to database.' });
+                const { error: dbError } = await supabase
+                    .from('messages')
+                    .insert([
+                        {
+                            id: newId,
+                            full_name: name,
+                            email: email,
+                            subject: subject,
+                            message: message,
+                            created_at: now
+                        }
+                    ]);
+
+                if (dbError) {
+                    console.error('Supabase Insert Error:', dbError);
+                    // Return the specific Supabase error code to the client for easier debugging
+                    return res.status(500).json({ error: `Database error: ${dbError.message || dbError.code || 'Unknown'}` });
+                }
+            } catch (err) {
+                console.error('Supabase Exception:', err);
+                return res.status(500).json({ error: `Database exception: ${err.message}` });
             }
         } else {
             console.warn('Supabase is not configured. Skipping database insert.');
