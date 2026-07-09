@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nitin Gawade | Portfolio</title>
+  <script type="text/javascript">
+    /**
+     * GitHub Pages SPA Redirect
+     *
+     * GitHub Pages serves this 404.html whenever a URL has no matching file
+     * (e.g. refreshing on /Portfolio2026/about). This script encodes the full
+     * URL into a query-string param on the repo root so the main index.html
+     * can decode it and pass the real path to React Router.
+     *
+     * pathSegmentsToKeep = 1 keeps the /Portfolio2026 segment in the URL.
+     *
+     * Based on https://github.com/rafgraph/spa-github-pages
+     */
+    var pathSegmentsToKeep = 1;
+
+    var l = window.location;
+    l.replace(
+      l.protocol + '//' + l.host + l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+      l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body>
+</body>
+</html>

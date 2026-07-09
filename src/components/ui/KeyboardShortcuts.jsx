@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Keyboard Shortcuts - Premium feature for navigation
@@ -7,6 +8,7 @@ import { m, AnimatePresence } from "framer-motion";
  */
 export function KeyboardShortcuts() {
     const [showHelp, setShowHelp] = useState(false);
+    const navigate = useNavigate();
 
     const shortcuts = [
         { key: "?", action: "Show this help menu" },
@@ -40,7 +42,7 @@ export function KeyboardShortcuts() {
             };
 
             if (keyMap[e.key?.toLowerCase()]) {
-                window.location.href = keyMap[e.key.toLowerCase()];
+                navigate(keyMap[e.key.toLowerCase()]);
             }
 
             // Close on Escape

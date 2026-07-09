@@ -1,5 +1,5 @@
 import { useState, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { AnimatePresence, m, LazyMotion, domAnimation } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 
@@ -69,7 +69,7 @@ function AnimatedRoutes() {
                             }}>
                                 <p style={{ fontSize: "clamp(5rem,15vw,8rem)", fontFamily: "'Playfair Display', serif", letterSpacing: "-0.04em", lineHeight: 1.05, fontWeight: 700, color: "var(--text-dim)" }}>404</p>
                                 <p style={{ color: "var(--text-muted)", fontSize: "1.1rem" }}>This page doesn't exist.</p>
-                                <a href="/" className="btn-primary" style={{ textDecoration: "none", marginTop: 8 }}>← Back to Home</a>
+                                <Link to="/" className="btn-primary" style={{ textDecoration: "none", marginTop: 8 }}>← Back to Home</Link>
                             </div>
                         </PageTransition>
                     } />
@@ -86,7 +86,7 @@ export default function App() {
     return (
         <AccessibilityProvider>
             <LazyMotion features={domAnimation}>
-                <BrowserRouter>
+                <BrowserRouter basename="/Portfolio2026">
                     {/* Loading screen */}
                     {!loaded && <Loader onComplete={() => setLoaded(true)} />}
 
