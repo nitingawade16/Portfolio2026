@@ -86,7 +86,7 @@ export default function App() {
     return (
         <AccessibilityProvider>
             <LazyMotion features={domAnimation}>
-                <BrowserRouter basename="/Portfolio2026">
+                <BrowserRouter>
                     {/* Loading screen */}
                     {!loaded && <Loader onComplete={() => setLoaded(true)} />}
 
