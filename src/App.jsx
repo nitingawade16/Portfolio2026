@@ -16,7 +16,6 @@ import ScrollProgress from "@/components/ui/ScrollProgress";
 import BackToTop from "@/components/ui/BackToTop";
 import Loader from "@/components/ui/Loader";
 import CommandPalette from "@/components/ui/CommandPalette";
-import { KeyboardShortcuts } from "@/components/ui/KeyboardShortcuts";
 
 // Pages (Lazy Loaded)
 const Home = lazy(() => import("@/pages/Home"));
@@ -134,8 +133,6 @@ export default function App() {
                         }}
                     />
 
-                    {/* Premium Features */}
-                    <KeyboardShortcuts />
                 </BrowserRouter>
             </LazyMotion>
         </AccessibilityProvider>

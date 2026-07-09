@@ -75,7 +75,6 @@ portolio/                        <- project root
     │       ├── CustomIcons.jsx          <- SVG icon components not in lucide
     │       ├── InteractiveContactForm.jsx  <- Full contact form with EmailJS
     │       ├── InteractiveSkillCard.jsx    <- Skill card with hover effects
-    │       ├── KeyboardShortcuts.jsx       <- Keyboard shortcut handler
     │       ├── Loader.jsx               <- Full-screen loading animation (on first load)
     │       ├── ProjectCard3D.jsx        <- 3D tilt project card
     │       ├── ProjectModal.jsx         <- Full-screen project detail modal
@@ -135,8 +134,7 @@ AccessibilityProvider
                     ├── <main> → AnimatedRoutes (lazy pages)
                     ├── Footer
                     ├── BackToTop
-                    ├── Toaster (react-hot-toast)
-                    └── KeyboardShortcuts
+                    └── Toaster (react-hot-toast)
 ```
 
 ### Routing

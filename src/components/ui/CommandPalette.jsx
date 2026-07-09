@@ -20,20 +20,7 @@ export default function CommandPalette() {
     const navigate = useNavigate();
     const inputRef = useRef(null);
 
-    // Capture Ctrl+K / Cmd+K
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-                e.preventDefault();
-                setIsOpen((prev) => !prev);
-            }
-            if (e.key === "Escape") {
-                setIsOpen(false);
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
+
 
     // Focus input when opened
     useEffect(() => {
@@ -136,14 +123,6 @@ export default function CommandPalette() {
                     }}
                 >
                     <span>Search / Actions</span>
-                    <kbd style={{
-                        background: "var(--border-primary)",
-                        border: "1px solid var(--border-secondary)",
-                        borderRadius: 4,
-                        padding: "2px 5px",
-                        fontSize: "0.65rem",
-                        fontFamily: "monospace"
-                    }}>Ctrl+K</kbd>
                 </button>
             </div>
 
@@ -172,6 +151,9 @@ export default function CommandPalette() {
                             exit={{ scale: 0.95, y: -20 }}
                             transition={{ duration: 0.25, ease: "easeOut" }}
                             onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => {
+                                if (e.key === "Escape") setIsOpen(false);
+                            }}
                             style={{
                                 width: "100%",
                                 maxWidth: 540,
