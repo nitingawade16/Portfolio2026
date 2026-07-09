@@ -9,8 +9,13 @@ if (typeof window !== "undefined") {
 }
 
 /**
- * GSAP-powered smooth scrolling with ScrollTrigger and Lenis
- * Provides 60fps smooth scroll experience with proper cleanup
+ * GSAP-powered smooth scrolling with ScrollTrigger and Lenis.
+ *
+ * MOBILE FIX: Lenis intercepts native touch scroll events which prevents
+ * scrolling on real mobile devices (Android Chrome, Samsung Internet,
+ * Mobile Safari). Lenis is skipped entirely on touch/coarse-pointer devices
+ * and the browser handles scrolling natively. GSAP ScrollTrigger still runs
+ * for scroll-driven animations.
  */
 export default function SmoothScroll({ children }) {
     const lenisRef = useRef(null);
@@ -21,14 +26,35 @@ export default function SmoothScroll({ children }) {
         const hasReducedMotionClass = document.documentElement.classList.contains("acc-reduced-motion");
 
         if (prefersReducedMotion || hasReducedMotionClass) {
-            // Skip smooth scroll if user prefers reduced motion
             document.documentElement.style.scrollBehavior = "smooth";
             return;
         }
 
-        // Initialize Lenis
+        // ── Mobile / touch detection ───────────────────────────────────────
+        // Lenis intercepts native touch events and causes pages to not scroll
+        // on real mobile devices even when smoothTouch is false.
+        // Skip Lenis on any touch-primary (coarse pointer) device.
+        const isTouchDevice =
+            "ontouchstart" in window ||
+            navigator.maxTouchPoints > 0 ||
+            window.matchMedia("(pointer: coarse)").matches;
+
+        if (isTouchDevice) {
+            // Still wire up ScrollTrigger so scroll animations work on mobile.
+            gsap.config({ force3D: true, nullTargetWarn: false });
+            ScrollTrigger.config({
+                syncInterval: 0,
+                autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
+            });
+            ScrollTrigger.refresh();
+            return () => {
+                ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+            };
+        }
+
+        // ── Desktop only: Initialize Lenis smooth scroll ───────────────────
         const lenis = new Lenis({
-            lerp: 0.08, // Physics-based smoothing for buttery feel
+            lerp: 0.08,
             wheelMultiplier: 0.9,
             direction: "vertical",
             gestureDirection: "vertical",
@@ -37,38 +63,35 @@ export default function SmoothScroll({ children }) {
             touchMultiplier: 2,
             infinite: false,
         });
-        
+
         lenisRef.current = lenis;
 
-        // Configure GSAP
         gsap.config({
             force3D: true,
             nullTargetWarn: false,
         });
 
-        // Sync Lenis with ScrollTrigger
-        lenis.on('scroll', ScrollTrigger.update);
+        lenis.on("scroll", ScrollTrigger.update);
 
-        gsap.ticker.add((time) => {
+        // Keep a reference to the RAF callback so we can remove it precisely.
+        const rafCallback = (time) => {
             lenis.raf(time * 1000);
-        });
+        };
 
+        gsap.ticker.add(rafCallback);
         gsap.ticker.lagSmoothing(0);
 
-        // Configure ScrollTrigger
         ScrollTrigger.config({
             syncInterval: 0,
-            autoRefreshEvents: "visibilitychange,DOMContentLoaded,load"
+            autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
         });
 
-        // Refresh ScrollTrigger on page load
         ScrollTrigger.refresh();
 
-        // Cleanup function
         return () => {
             lenis.destroy();
-            gsap.ticker.remove(lenis.raf);
-            ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+            gsap.ticker.remove(rafCallback);
+            ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
             document.documentElement.style.scrollBehavior = "auto";
         };
     }, []);

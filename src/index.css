@@ -222,6 +222,8 @@ html {
     scroll-behavior: auto;
     overflow-x: hidden;
     font-size: 16px;
+    /* Enable momentum scrolling on iOS Safari */
+    -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -229,12 +231,16 @@ body {
     color: var(--text-primary);
     font-family: 'Geist', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
+    overflow-y: auto; /* Always allow vertical scrolling */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     line-height: 1.65;
     letter-spacing: -0.01em;
-    overscroll-behavior: none; /* Prevents bounce effect on Mac for smoother Lenis feel */
+    /* touch-action: pan-y — let browser handle vertical touch scrolling natively */
+    touch-action: pan-y;
+    /* overscroll-behavior: none was removed — it suppresses momentum scrolling
+       on mobile browsers (Android Chrome, Samsung Internet, Mobile Safari) */
 }
 
 a,
