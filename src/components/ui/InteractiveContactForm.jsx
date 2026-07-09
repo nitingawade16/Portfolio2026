@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { m, AnimatePresence, useMotionValue } from "framer-motion";
-import emailjs from "@emailjs/browser";
 import toast from "react-hot-toast";
 import {
     Send, Check, AlertCircle, Loader,
@@ -8,11 +7,7 @@ import {
 } from "lucide-react";
 import { AnimatedInput } from "@/components/ui/AnimatedInput";
 
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
-
-const emailjsReady = EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY;
+// Removed emailjs config
 
 const formVariants = {
     hidden: { opacity: 0 },
@@ -43,7 +38,7 @@ const itemVariants = {
  */
 export default function InteractiveContactForm({ email }) {
     const formRef = useRef(null);
-    const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+    const [form, setForm] = useState({ name: "", email: "", subject: "", message: "", _honey: "" });
     const [errors, setErrors] = useState({});
     const [status, setStatus] = useState("idle"); // idle, sending, success, error
     const [focusedField, setFocusedField] = useState(null);
@@ -94,42 +89,30 @@ export default function InteractiveContactForm({ email }) {
 
         setStatus("sending");
 
-        if (emailjsReady) {
-            try {
-                await emailjs.send(
-                    EMAILJS_SERVICE_ID,
-                    EMAILJS_TEMPLATE_ID,
-                    {
-                        from_name: form.name,
-                        from_email: form.email,
-                        subject: form.subject,
-                        message: form.message,
-                    },
-                    EMAILJS_PUBLIC_KEY
-                );
-                setStatus("success");
-                setForm({ name: "", email: "", subject: "", message: "" });
-                toast.success("Message sent! I'll get back to you soon 🚀");
-                return;
-            } catch (err) {
-                console.error("EmailJS error:", err);
-                setStatus("error");
-                toast.error("Failed to send message. Please try again.");
-                return;
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(form)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send message');
             }
+
+            setStatus("success");
+            setForm({ name: "", email: "", subject: "", message: "", _honey: "" });
+            toast.success("Message sent! I'll get back to you soon 🚀");
+            
+        } catch (error) {
+            console.error("API error:", error);
+            setStatus("error");
+            toast.error(error.message || "Failed to send message. Please try again.");
         }
-
-        // Fallback to mailto
-        const mailBody = encodeURIComponent(
-            `Hi,\n\n${form.message}\n\n---\nFrom: ${form.name}\nEmail: ${form.email}`
-        );
-        const mailSubject = encodeURIComponent(form.subject || "Message from Portfolio");
-        const mailtoLink = `mailto:${email}?subject=${mailSubject}&body=${mailBody}`;
-
-        window.location.href = mailtoLink;
-        setStatus("success");
-        setForm({ name: "", email: "", subject: "", message: "" });
-        toast.success("Opened email client with message pre-filled! 📬");
     };
 
     const isFormValid =
@@ -418,6 +401,15 @@ export default function InteractiveContactForm({ email }) {
                                 style={{ display: "flex", flexDirection: "column", gap: 8 }}
                             >
                                 {/* Form Fields Staggered Entrance */}
+                                <input
+                                    type="text"
+                                    name="_honey"
+                                    style={{ display: "none" }}
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    value={form._honey}
+                                    onChange={handleChange}
+                                />
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                                     <m.div variants={itemVariants}>
                                         <AnimatedInput
