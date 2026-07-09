@@ -493,6 +493,9 @@ export default function Education() {
                     border-color: #FF4500;
                     box-shadow: 0 0 16px rgba(255, 69, 0, 0.5);
                 }
+                .timeline-empty-space {
+                    display: block;
+                }
                 @media (max-width: 820px) {
                     .timeline-line {
                         left: 16px;
@@ -509,6 +512,9 @@ export default function Education() {
                     .timeline-dot {
                         left: 16px;
                         transform: translate(-50%, 28px);
+                    }
+                    .timeline-empty-space {
+                        display: none !important;
                     }
                 }
             `}</style>
@@ -570,11 +576,11 @@ export default function Education() {
                                     {isEven ? (
                                         <>
                                             {cardContent}
-                                            <div className="md:block hidden" />
+                                            <div className="timeline-empty-space" />
                                         </>
                                     ) : (
                                         <>
-                                            <div className="md:block hidden" />
+                                            <div className="timeline-empty-space" />
                                             {cardContent}
                                         </>
                                     )}

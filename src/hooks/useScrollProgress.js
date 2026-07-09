@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 export function useScrollProgress() {
     const [progress, setProgress] = useState(0);
     const rafRef = useRef(null);
+    const lastUpdateRef = useRef(0);
 
     useEffect(() => {
         const update = () => {
@@ -13,12 +14,19 @@ export function useScrollProgress() {
         };
 
         const onScroll = () => {
-            if (!rafRef.current) {
-                rafRef.current = requestAnimationFrame(() => {
-                    update();
-                    rafRef.current = null;
-                });
+            const now = Date.now();
+            // Throttle to 100ms (10fps for scroll indicator)
+            if (now - lastUpdateRef.current < 100) return;
+
+            if (rafRef.current) {
+                cancelAnimationFrame(rafRef.current);
             }
+
+            rafRef.current = requestAnimationFrame(() => {
+                update();
+                lastUpdateRef.current = now;
+                rafRef.current = null;
+            });
         };
 
         window.addEventListener("scroll", onScroll, { passive: true });

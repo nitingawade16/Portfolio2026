@@ -256,6 +256,7 @@ export default function Skills() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "0px" }}
+                    className="skills-category-tabs"
                     style={{
                         display: "flex",
                         flexWrap: "wrap",
@@ -473,6 +474,25 @@ export default function Skills() {
                     </div>
                 </m.div>
             </div>
+            <style>{`
+                @media (max-width: 600px) {
+                    .skills-category-tabs {
+                        width: 100% !important;
+                        flex-wrap: nowrap !important;
+                        overflow-x: auto !important;
+                        overflow-y: hidden !important;
+                        justify-content: flex-start !important;
+                        padding: 6px 12px !important;
+                        border-radius: 20px !important;
+                        scroll-behavior: smooth;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: none;
+                    }
+                    .skills-category-tabs::-webkit-scrollbar {
+                        display: none;
+                    }
+                }
+            `}</style>
         </main>
     );
 }

@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
  * - Circular glowing category icon backgrounds
  * - Fast copy-to-clipboard trigger
  */
-export function ContactCard({ Icon, label, value, href, color, index }) {
+export function ContactCard({ Icon, label, value, href, onClick, color, index }) {
     const [copied, setCopied] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -181,11 +181,35 @@ export function ContactCard({ Icon, label, value, href, color, index }) {
                 </span>
 
                 <div style={{ minWidth: 0 }}>
-                    {href ? (
+                    {onClick ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onClick(); }}
+                            style={{
+                                color: "#ffffff",
+                                fontSize: "1.05rem",
+                                fontWeight: 700,
+                                textDecoration: "none",
+                                display: "block",
+                                transition: "color 0.25s ease",
+                                wordBreak: "break-word",
+                                lineHeight: 1.4,
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                textAlign: "left",
+                                width: "100%",
+                                cursor: "pointer"
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = color; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = "#ffffff"; }}
+                        >
+                            {value}
+                        </button>
+                    ) : href ? (
                         <a
                             href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            target={href.startsWith("mailto:") || href.startsWith("tel:") ? undefined : "_blank"}
+                            rel={href.startsWith("mailto:") || href.startsWith("tel:") ? undefined : "noopener noreferrer"}
                             onClick={(e) => e.stopPropagation()}
                             style={{
                                 color: "#ffffff",

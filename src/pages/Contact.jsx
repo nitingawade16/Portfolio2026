@@ -6,10 +6,11 @@ import { Github, Linkedin } from "@/components/ui/CustomIcons";
 import { ContactCard } from "@/components/ui/ContactCard";
 import InteractiveContactForm from "@/components/ui/InteractiveContactForm";
 import { personalInfo } from "@/data/personalInfo";
+import { openMail } from "../utils/openMail";
 
 const contactItems = [
     { Icon: User, label: "Name", value: personalInfo.name, href: null, color: "#E040FB" },
-    { Icon: Mail, label: "Email", value: personalInfo.email, href: `mailto:${personalInfo.email}`, color: "#06B6D4" },
+    { Icon: Mail, label: "Email", value: personalInfo.email, onClick: () => openMail("Let's work together", ""), color: "#06B6D4" },
     { Icon: Phone, label: "Phone", value: personalInfo.phone, href: `tel:${personalInfo.phone}`, color: "#10B981" },
     { Icon: MapPin, label: "Location", value: personalInfo.location, href: null, color: "#F97316" },
 ];
@@ -304,8 +305,8 @@ export default function Contact() {
                                         <m.a
                                             key={label}
                                             href={href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            target={href.startsWith("mailto:") ? undefined : "_blank"}
+                                            rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
                                             whileHover={{
                                                 y: -6,
                                                 scale: 1.03,
@@ -350,8 +351,8 @@ export default function Contact() {
                         </m.div>
 
                         {/* Direct Email Link */}
-                        <m.a
-                            href={`mailto:${personalInfo.email}`}
+                        <m.button
+                            onClick={() => openMail("Let's work together", "")}
                             whileHover={{ y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             className="btn-secondary"
@@ -360,17 +361,20 @@ export default function Contact() {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 gap: 8,
-                                textDecoration: "none",
                                 cursor: "pointer",
+                                background: "none",
+                                border: "none",
+                                width: "100%",
                             }}
                         >
                             <ArrowRight size={16} />
                             Or email me directly
-                        </m.a>
+                        </m.button>
                     </m.div>
-
+ 
                     {/* ── RIGHT SIDE: Interactive Contact Form ── */}
                     <m.div
+                        id="contact-form"
                         initial={{ opacity: 0, x: 40 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, margin: "-100px" }}

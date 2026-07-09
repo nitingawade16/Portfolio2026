@@ -126,7 +126,7 @@ export default function InteractiveContactForm({ email }) {
         const mailSubject = encodeURIComponent(form.subject || "Message from Portfolio");
         const mailtoLink = `mailto:${email}?subject=${mailSubject}&body=${mailBody}`;
 
-        window.open(mailtoLink, "_blank");
+        window.location.href = mailtoLink;
         setStatus("success");
         setForm({ name: "", email: "", subject: "", message: "" });
         toast.success("Opened email client with message pre-filled! 📬");

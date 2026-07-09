@@ -50,11 +50,11 @@ export function FeaturedProjectSection({ project, onClick }) {
                 height: "100%",
             }}
         >
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, minHeight: 420, alignItems: "stretch" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 0, minHeight: 360, alignItems: "stretch" }}>
                 {/* Left Content */}
                 <div
                     style={{
-                        padding: "48px 40px",
+                        padding: "36px 32px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
@@ -69,13 +69,13 @@ export function FeaturedProjectSection({ project, onClick }) {
                             animate={{ y: isHovered ? -2 : 0 }}
                             style={{
                                 display: "inline-block",
-                                marginBottom: 16,
-                                padding: "8px 14px",
+                                marginBottom: 12,
+                                padding: "6px 12px",
                                 borderRadius: "50px",
                                 background: `${project.color}20`,
                                 border: `1px solid ${project.color}40`,
                                 color: project.color,
-                                fontSize: "0.75rem",
+                                fontSize: "0.7rem",
                                 fontWeight: 700,
                                 textTransform: "uppercase",
                                 letterSpacing: "0.08em",
@@ -88,9 +88,9 @@ export function FeaturedProjectSection({ project, onClick }) {
                         <m.h2
                             animate={{ color: isHovered ? project.color : "var(--text-primary)" }}
                             style={{
-                                fontSize: "2rem",
+                                fontSize: "1.75rem",
                                 fontWeight: 800,
-                                marginBottom: 16,
+                                marginBottom: 12,
                                 fontFamily: "'Outfit', sans-serif",
                                 transition: "color 0.22s cubic-bezier(0.22, 1, 0.36, 1)",
                             }}
@@ -102,22 +102,22 @@ export function FeaturedProjectSection({ project, onClick }) {
                         <p
                             style={{
                                 color: "var(--text-secondary)",
-                                fontSize: "0.95rem",
-                                lineHeight: 1.7,
-                                marginBottom: 20,
+                                fontSize: "0.9rem",
+                                lineHeight: 1.65,
+                                marginBottom: 16,
                             }}
                         >
                             {project.description}
                         </p>
 
                         {/* Key Stats */}
-                        <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
+                        <div style={{ display: "flex", gap: 20, marginBottom: 20 }}>
                             {project.stats?.map((stat, i) => (
                                 <div key={i}>
-                                    <div style={{ color: project.color, fontSize: "1.4rem", fontWeight: 800 }}>
+                                    <div style={{ color: project.color, fontSize: "1.25rem", fontWeight: 800 }}>
                                         {stat.value}
                                     </div>
-                                    <div style={{ color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: 600 }}>
+                                    <div style={{ color: "var(--text-muted)", fontSize: "0.7rem", fontWeight: 600 }}>
                                         {stat.label}
                                     </div>
                                 </div>
@@ -126,7 +126,7 @@ export function FeaturedProjectSection({ project, onClick }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         {project.demo && (
                             <a
                                 href={project.demo}
@@ -137,12 +137,13 @@ export function FeaturedProjectSection({ project, onClick }) {
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 6,
-                                    padding: "12px 20px",
+                                    padding: "10px 18px",
                                     borderRadius: "10px",
                                     textDecoration: "none",
+                                    fontSize: "0.85rem",
                                 }}
                             >
-                                <ExternalLink size={16} /> Live Demo
+                                <ExternalLink size={15} /> Live Demo
                             </a>
                         )}
                         {project.github && (
@@ -154,12 +155,12 @@ export function FeaturedProjectSection({ project, onClick }) {
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 6,
-                                    padding: "12px 20px",
+                                    padding: "10px 18px",
                                     borderRadius: "10px",
                                     background: "var(--bg-card)",
                                     border: "1px solid var(--glass-panel)",
                                     color: "var(--text-secondary)",
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.82rem",
                                     fontWeight: 600,
                                     textDecoration: "none",
                                     transition: "all 0.2s ease",
@@ -173,7 +174,7 @@ export function FeaturedProjectSection({ project, onClick }) {
                                     e.target.style.color = "var(--text-secondary)";
                                 }}
                             >
-                                <Github size={16} /> Source Code
+                                <Github size={15} /> Source Code
                             </a>
                         )}
                         <m.button
@@ -183,18 +184,18 @@ export function FeaturedProjectSection({ project, onClick }) {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 6,
-                                padding: "12px 20px",
+                                padding: "10px 18px",
                                 borderRadius: "10px",
                                 background: `${project.color}15`,
                                 border: `1px solid ${project.color}30`,
                                 color: project.color,
-                                fontSize: "0.85rem",
+                                fontSize: "0.82rem",
                                 fontWeight: 600,
                                 cursor: "pointer",
                                 transition: "all 0.2s ease",
                             }}
                         >
-                            View Full Case Study <ArrowRight size={14} />
+                            View Case Study <ArrowRight size={14} />
                         </m.button>
                     </div>
                 </div>
@@ -219,8 +220,8 @@ export function FeaturedProjectSection({ project, onClick }) {
                         transition={{ duration: 8, ease: "linear" }}
                         style={{
                             position: "absolute",
-                            width: 300,
-                            height: 300,
+                            width: 250,
+                            height: 250,
                             borderRadius: "50%",
                             background: `radial-gradient(circle, ${project.color}40, transparent 70%)`,
                             opacity: 0.4,
@@ -230,7 +231,7 @@ export function FeaturedProjectSection({ project, onClick }) {
                     {/* Animated Icon */}
                     <m.div
                         animate={{
-                            scale: isHovered ? 1.3 : 1,
+                            scale: isHovered ? 1.25 : 1,
                             rotate: isHovered ? 10 : 0,
                         }}
                         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
@@ -242,7 +243,7 @@ export function FeaturedProjectSection({ project, onClick }) {
                             justifyContent: "center",
                         }}
                     >
-                        {getProjectIcon(project.icon, 96)}
+                        {getProjectIcon(project.icon, 72)}
                     </m.div>
 
                     {/* Glow Effect */}
@@ -263,10 +264,10 @@ export function FeaturedProjectSection({ project, onClick }) {
             {/* Tech Stack Row */}
             <div
                 style={{
-                    padding: "20px 40px",
+                    padding: "16px 32px",
                     borderTop: `1px solid ${project.color}20`,
                     display: "flex",
-                    gap: 12,
+                    gap: 10,
                     flexWrap: "wrap",
                     background: `${project.color}08`,
                 }}
@@ -275,12 +276,12 @@ export function FeaturedProjectSection({ project, onClick }) {
                     <span
                         key={tech}
                         style={{
-                            padding: "6px 12px",
-                            borderRadius: "8px",
+                            padding: "5px 10px",
+                            borderRadius: "7px",
                             background: `${project.color}15`,
                             border: `1px solid ${project.color}30`,
                             color: project.color,
-                            fontSize: "0.7rem",
+                            fontSize: "0.68rem",
                             fontWeight: 600,
                             textTransform: "uppercase",
                             letterSpacing: "0.04em",
@@ -292,8 +293,8 @@ export function FeaturedProjectSection({ project, onClick }) {
                 {project.tech?.length > 5 && (
                     <span
                         style={{
-                            padding: "6px 12px",
-                            fontSize: "0.7rem",
+                            padding: "5px 10px",
+                            fontSize: "0.68rem",
                             color: "var(--text-muted)",
                             fontWeight: 600,
                         }}
@@ -302,6 +303,26 @@ export function FeaturedProjectSection({ project, onClick }) {
                     </span>
                 )}
             </div>
+
+            {/* Responsive Styles */}
+            <style>{`
+                @media (max-width: 900px) {
+                    .card > div:first-child {
+                        grid-template-columns: 1fr !important;
+                        min-height: auto !important;
+                    }
+                }
+                
+                @media (max-width: 640px) {
+                    .card > div:first-child > div:first-child {
+                        padding: 28px 24px !important;
+                    }
+                    
+                    .card > div:last-child {
+                        padding: 14px 24px !important;
+                    }
+                }
+            `}</style>
         </m.div>
     );
 }

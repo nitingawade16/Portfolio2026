@@ -4,6 +4,7 @@ import { Mail, ArrowUp, Code, Heart } from "lucide-react";
 import { Instagram, Github, Linkedin } from "@/components/ui/CustomIcons";
 
 import { personalInfo } from "@/data/personalInfo";
+import { openMail } from "../../utils/openMail";
 
 const navLinks = [
     { label: "Home", to: "/" },
@@ -18,7 +19,7 @@ const socialLinks = [
     { Icon: Instagram, href: personalInfo.instagram, label: "Instagram", color: "#E1306C" },
     { Icon: Github, href: personalInfo.github || "#", label: "GitHub", color: "#A78BFA" },
     { Icon: Linkedin, href: personalInfo.linkedin || "#", label: "LinkedIn", color: "#0A66C2" },
-    { Icon: Mail, href: `mailto:${personalInfo.email}`, label: "Email", color: "#06B6D4" },
+    { Icon: Mail, to: "/contact", label: "Email", color: "#06B6D4" },
 ];
 
 /**
@@ -37,7 +38,7 @@ export default function Footer() {
         <div style={{ position: "relative", zIndex: 10, width: "100%" }}>
             {/* ── MAIN FOOTER ── */}
             <footer
-                className="glass"
+                className="glass footer-inner"
                 style={{
                     borderBottomLeftRadius: 0,
                     borderBottomRightRadius: 0,
@@ -66,7 +67,7 @@ export default function Footer() {
 
                 <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
                     {/* Main Footer Grid */}
-                    <div style={{
+                    <div className="footer-grid" style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                         gap: "clamp(40px, 8vw, 64px)",
@@ -74,13 +75,14 @@ export default function Footer() {
                     }}>
                         {/* Brand & Social Section */}
                         <m.section
+                            className="footer-brand"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
                             aria-label="Brand and social links"
                         >
-                            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                            <div className="footer-brand-title" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
                                 <m.div
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     style={{
@@ -115,7 +117,7 @@ export default function Footer() {
                                 </div>
                             </div>
 
-                            <p style={{
+                            <p className="footer-brand-p" style={{
                                 color: "var(--text-secondary)",
                                 fontSize: "0.9rem",
                                 lineHeight: 1.7,
@@ -127,37 +129,55 @@ export default function Footer() {
 
                             {/* Social Icon Cards */}
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }} role="list">
-                                {socialLinks.map(({ Icon, href, label, color }) => (
-                                    <m.a
-                                        key={label}
-                                        href={href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={`Visit on ${label}`}
-                                        role="listitem"
-                                        whileHover={{
-                                            y: -4,
-                                            scale: 1.1,
-                                            boxShadow: `0 8px 20px ${color}40`,
-                                        }}
-                                        whileTap={{ scale: 0.95 }}
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: "12px",
-                                            background: `linear-gradient(135deg, ${color}20, ${color}05)`,
-                                            border: `1.5px solid ${color}30`,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            color: color,
-                                            cursor: "none",
-                                            transition: "all 0.3s ease",
-                                        }}
-                                    >
-                                        <Icon size={17} aria-hidden="true" />
-                                    </m.a>
-                                ))}
+                                {socialLinks.map(({ Icon, href, to, label, color }) => {
+                                    const innerContent = <Icon size={17} aria-hidden="true" />;
+                                    const commonStyle = {
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "12px",
+                                        background: `linear-gradient(135deg, ${color}20, ${color}05)`,
+                                        border: `1.5px solid ${color}30`,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: color,
+                                        cursor: "pointer",
+                                        textDecoration: "none"
+                                    };
+
+                                    return to ? (
+                                        <Link
+                                            key={label}
+                                            to={to}
+                                            aria-label={`Visit on ${label}`}
+                                            role="listitem"
+                                            style={commonStyle}
+                                        >
+                                            {innerContent}
+                                        </Link>
+                                    ) : (
+                                        <m.a
+                                            key={label}
+                                            href={href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`Visit on ${label}`}
+                                            role="listitem"
+                                            whileHover={{
+                                                y: -4,
+                                                scale: 1.1,
+                                                boxShadow: `0 8px 20px ${color}40`,
+                                            }}
+                                            whileTap={{ scale: 0.95 }}
+                                            style={{
+                                                ...commonStyle,
+                                                transition: "all 0.3s ease",
+                                            }}
+                                        >
+                                            {innerContent}
+                                        </m.a>
+                                    );
+                                })}
                             </div>
                         </m.section>
 
@@ -169,7 +189,7 @@ export default function Footer() {
                             transition={{ duration: 0.5, delay: 0.1 }}
                             aria-label="Navigation links"
                         >
-                            <h3 style={{
+                             <h3 className="footer-title" style={{
                                 color: "var(--text-primary)",
                                 fontWeight: 700,
                                 marginBottom: 24,
@@ -179,7 +199,7 @@ export default function Footer() {
                             }}>
                                 Navigation
                             </h3>
-                            <nav style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 28px" }}>
+                            <nav className="footer-nav" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 28px" }}>
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.to}
@@ -215,7 +235,7 @@ export default function Footer() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             aria-label="Quick links"
                         >
-                            <h3 style={{
+                             <h3 className="footer-title" style={{
                                 color: "var(--text-primary)",
                                 fontWeight: 700,
                                 marginBottom: 24,
@@ -225,11 +245,9 @@ export default function Footer() {
                             }}>
                                 Quick Links
                             </h3>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                                <m.a
-                                    href={`mailto:${personalInfo.email}`}
-                                    whileHover={{ x: 4 }}
-                                    aria-label={`Send email to ${personalInfo.email}`}
+                            <div className="footer-quick-links" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                                <button
+                                    onClick={() => openMail("Portfolio Inquiry", "Hi Nitin,")}
                                     style={{
                                         color: "var(--text-secondary)",
                                         fontSize: "0.9rem",
@@ -238,11 +256,15 @@ export default function Footer() {
                                         alignItems: "center",
                                         gap: 8,
                                         transition: "color 0.3s ease",
+                                        background: "none",
+                                        border: "none",
+                                        padding: 0,
+                                        cursor: "pointer",
                                     }}
                                 >
                                     <Mail size={14} aria-hidden="true" />
                                     Email Me
-                                </m.a>
+                                </button>
                                 <m.a
                                     href={personalInfo.resumeUrl}
                                     target="_blank"
@@ -267,7 +289,7 @@ export default function Footer() {
                     </div>
 
                     {/* Bottom Bar */}
-                    <div style={{
+                    <div className="footer-bottom" style={{
                         borderTop: "1px solid var(--border-glass)",
                         paddingTop: 32,
                         display: "flex",
@@ -318,6 +340,35 @@ export default function Footer() {
                         </div>
                     </div>
                 </div>
+                <style>{`
+                    @media (max-width: 768px) {
+                        .footer-inner {
+                            padding: 40px 16px 24px !important;
+                        }
+                        .footer-grid {
+                            gap: 24px !important;
+                            margin-bottom: 32px !important;
+                        }
+                        .footer-brand-title {
+                            margin-bottom: 12px !important;
+                        }
+                        .footer-brand-p {
+                            margin-bottom: 16px !important;
+                        }
+                        .footer-title {
+                            margin-bottom: 12px !important;
+                        }
+                        .footer-nav {
+                            gap: 8px 16px !important;
+                        }
+                        .footer-quick-links {
+                            gap: 8px !important;
+                        }
+                        .footer-bottom {
+                            padding-top: 20px !important;
+                        }
+                    }
+                `}</style>
             </footer>
         </div>
     );

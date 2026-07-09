@@ -38,16 +38,27 @@ export default function BackToTop() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.5, y: 20 }}
                     onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    className="fixed bottom-8 right-8 z-50 w-12 h-12 flex items-center justify-center rounded-full"
+                    className="back-to-top-btn"
                     style={{
+                        position: "fixed",
+                        bottom: "32px",
+                        right: "32px",
+                        zIndex: 9999,
+                        width: "48px",
+                        height: "48px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "50%",
+                        border: "none",
                         background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
                         boxShadow: "0 0 20px rgba(0,212,255,0.4)",
-                        cursor: "none",
+                        cursor: "pointer",
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                 >
-                    <ArrowUp className="text-white text-xl" />
+                    <ArrowUp style={{ color: "#ffffff", fontSize: "20px" }} />
                 </m.button>
             )}
         </AnimatePresence>

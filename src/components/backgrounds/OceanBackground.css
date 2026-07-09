@@ -10,10 +10,11 @@
     height: 100%;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
+    will-change: auto;
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   LAYER 1: Deep Gradient Background
+   LAYER 1: Deep Gradient Background - STATIC FOR PERFORMANCE
    ─────────────────────────────────────────────────────────────────── */
 .ocean-layer-1 {
     background: linear-gradient(135deg,
@@ -23,8 +24,6 @@
             #0a0f1c 60%,
             #051829 80%,
             #060b15 100%);
-    background-size: 200% 200%;
-    animation: gradientShift 20s ease-in-out infinite;
 }
 
 @keyframes gradientShift {
@@ -42,53 +41,28 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   LAYER 2: Animated Underwater Texture - OPTIMIZED (SLOWER)
+   LAYER 2: Animated Underwater Texture - DISABLED FOR PERFORMANCE
    ─────────────────────────────────────────────────────────────────── */
 .ocean-layer-2 {
     background: repeating-linear-gradient(90deg,
             transparent 0px,
-            rgba(100, 180, 220, 0.03) 2px,
-            rgba(100, 180, 220, 0.05) 4px,
+            rgba(100, 180, 220, 0.02) 2px,
+            rgba(100, 180, 220, 0.03) 4px,
             transparent 8px);
-    animation: textureFlow 60s linear infinite;
     mix-blend-mode: screen;
-    opacity: 0.3;
-}
-
-@keyframes textureFlow {
-    0% {
-        transform: translate3d(0, 0, 0);
-    }
-
-    100% {
-        transform: translate3d(50px, 100px, 0);
-    }
+    opacity: 0.2;
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   LAYER 3: Wave Shadows - OPTIMIZED (SLOWER)
+   LAYER 3: Wave Shadows - STATIC
    ─────────────────────────────────────────────────────────────────── */
 .ocean-layer-3 {
     background: radial-gradient(ellipse 800px 200px at 50% 30%,
-            rgba(50, 120, 180, 0.12) 0%,
-            rgba(50, 120, 180, 0.06) 40%,
+            rgba(50, 120, 180, 0.08) 0%,
+            rgba(50, 120, 180, 0.04) 40%,
             transparent 70%);
-    animation: waveShadowShift 50s ease-in-out infinite;
     mix-blend-mode: multiply;
-}
-
-@keyframes waveShadowShift {
-    0% {
-        transform: translate3d(0, -50px, 0);
-    }
-
-    50% {
-        transform: translate3d(30px, 0, 0);
-    }
-
-    100% {
-        transform: translate3d(0, -50px, 0);
-    }
+    opacity: 0.6;
 }
 
 /* ───────────────────────────────────────────────────────────────────
@@ -108,31 +82,10 @@
    ─────────────────────────────────────────────────────────────────── */
 
 /* ───────────────────────────────────────────────────────────────────
-   LAYER 6: Floating Particles - PURE CSS ANIMATION
+   LAYER 6: Floating Particles - DISABLED FOR PERFORMANCE
    ─────────────────────────────────────────────────────────────────── */
 .ocean-layer-6 {
-    mix-blend-mode: screen;
-    opacity: 0.6;
-}
-
-.particle {
-    box-shadow: 0 0 3px rgba(100, 180, 220, 0.4);
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-}
-
-@keyframes particleFloat {
-
-    0%,
-    100% {
-        transform: translate3d(0, 0, 0);
-        opacity: 0.3;
-    }
-
-    50% {
-        transform: translate3d(0, -18px, 0);
-        opacity: 0.6;
-    }
+    display: none;
 }
 
 /* ───────────────────────────────────────────────────────────────────

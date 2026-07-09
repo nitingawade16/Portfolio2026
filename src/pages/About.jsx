@@ -180,7 +180,7 @@ function AboutProfileCard() {
 }
 
 /* ─── Premium Contact Card with Spotlight ───────────────────── */
-function InteractiveContactCard({ href, icon: Icon, title, subtitle, target, rel }) {
+function InteractiveContactCard({ href, to, icon: Icon, title, subtitle, target, rel }) {
     const rectRef = useRef(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -198,33 +198,8 @@ function InteractiveContactCard({ href, icon: Icon, title, subtitle, target, rel
         });
     };
 
-    return (
-        <m.a
-            href={href}
-            target={target}
-            rel={rel}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={() => setIsHovered(false)}
-            whileHover={{ y: -6, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="contact-card premium-card"
-            style={{
-                position: "relative",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                padding: "28px 24px",
-                textDecoration: "none",
-                background: "rgba(14, 14, 22, 0.5)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "16px",
-                height: "100%"
-            }}
-        >
+    const innerContent = (
+        <>
             <m.div
                 animate={{
                     x: isHovered ? mousePosition.x - 100 : -100,
@@ -256,6 +231,54 @@ function InteractiveContactCard({ href, icon: Icon, title, subtitle, target, rel
                     {subtitle}
                 </p>
             </div>
+        </>
+    );
+
+    const commonStyle = {
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "28px 24px",
+        textDecoration: "none",
+        background: "rgba(14, 14, 22, 0.5)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        borderRadius: "16px",
+        height: "100%"
+    };
+
+    if (to) {
+        return (
+            <Link
+                to={to}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={() => setIsHovered(false)}
+                className="contact-card premium-card"
+                style={commonStyle}
+            >
+                {innerContent}
+            </Link>
+        );
+    }
+
+    return (
+        <m.a
+            href={href}
+            target={target}
+            rel={rel}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ y: -6, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="contact-card premium-card"
+            style={commonStyle}
+        >
+            {innerContent}
         </m.a>
     );
 }
@@ -425,7 +448,7 @@ export default function About() {
                     `}</style>
                     <div className="contact-grid">
                         <InteractiveContactCard
-                            href={`mailto:${personalInfo.email}`}
+                            to="/contact"
                             icon={Mail}
                             title="Email"
                             subtitle={personalInfo.email}

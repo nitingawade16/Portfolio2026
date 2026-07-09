@@ -39,10 +39,6 @@ export default function Projects() {
         });
     }, [activeTag, search]);
 
-    // Get featured project
-    const featuredProject = projects.find((p) => p.featured);
-    const otherProjects = filtered.filter((p) => p.id !== featuredProject?.id);
-
     return (
         <main style={{ minHeight: "100vh", paddingTop: 120, paddingBottom: 80, position: "relative" }}>
             {/* Aurora background glow */}
@@ -85,17 +81,7 @@ export default function Projects() {
                     center
                 />
 
-                {/* Featured Project Section */}
-                {projects.length > 0 && featuredProject && (
-                    <ScrollReveal variant="up" delay={0.15}>
-                        <div style={{ marginBottom: 80 }}>
-                            <FeaturedProjectSection
-                                project={featuredProject}
-                                onClick={() => setSelectedProject(featuredProject)}
-                            />
-                        </div>
-                    </ScrollReveal>
-                )}
+
 
                 {/* Search and Filters */}
                 {projects.length > 0 && (
@@ -194,6 +180,7 @@ export default function Projects() {
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
                                     transition={{ duration: 0.25, ease: "easeInOut" }}
+                                    className="projects-filter-tags"
                                     style={{
                                         display: "flex",
                                         flexWrap: "wrap",
@@ -250,13 +237,13 @@ export default function Projects() {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                        gap: 28,
+                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                        gap: 24,
                         marginBottom: 60,
                     }}
                 >
                     <AnimatePresence>
-                        {otherProjects.map((project, i) => (
+                        {filtered.map((project, i) => (
                             <ProjectCard3D
                                 key={project.id}
                                 project={project}
@@ -449,11 +436,37 @@ export default function Projects() {
                     <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
                 )}
             </AnimatePresence>
-
             <style>{`
                 @keyframes pulse {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.5; }
+                }
+                
+                @media (max-width: 600px) {
+                    .projects-filter-tags {
+                        flex-wrap: nowrap !important;
+                        overflow-x: auto !important;
+                        overflow-y: hidden !important;
+                        padding: 12px 16px !important;
+                        scroll-behavior: smooth;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: none;
+                    }
+                    .projects-filter-tags::-webkit-scrollbar {
+                        display: none;
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    [style*="gridTemplateColumns"] {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+                
+                @media (min-width: 641px) and (max-width: 900px) {
+                    [style*="gridTemplateColumns: repeat(auto-fill, minmax(300px, 1fr))"] {
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                    }
                 }
             `}</style>
         </main>

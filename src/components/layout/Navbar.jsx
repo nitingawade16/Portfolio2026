@@ -2,8 +2,14 @@ import { useState, useEffect, useMemo, memo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { m, AnimatePresence } from "framer-motion";
 import { Sliders } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { useAccessibility } from "@/context/AccessibilityContext";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 const navLinks = [
     { label: "Home", to: "/" },
@@ -14,197 +20,293 @@ const navLinks = [
     { label: "Contact", to: "/contact" },
 ];
 
-// Fixed dimensions guarantee mathematical alignment and no layout shifts
-const LINK_WIDTH = 100;
-const LINK_HEIGHT = 44;
-
-const NavLink = memo(({ link, isActive }) => {
-    return (
-        <Link
-            to={link.to}
-            className={`nav-link ${isActive ? "active" : ""}`}
-            role="menuitem"
-            aria-current={isActive ? "page" : undefined}
-            style={{
-                width: LINK_WIDTH,
-                height: LINK_HEIGHT,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "0.85rem",
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? "var(--color-primary-orange)" : "var(--text-secondary)",
-                textDecoration: "none",
-                cursor: "pointer",
-                transition: "color 0.25s ease",
-                zIndex: 2, // Must be above the sliding capsule
-                position: "relative",
-            }}
-        >
-            <m.span
-                whileHover={{
-                    y: -1,
-                    color: isActive ? "var(--color-primary-orange)" : "#ffffff"
-                }}
-                transition={{ duration: 0.2 }}
-                style={{
-                    display: "inline-block",
-                    textShadow: isActive ? "0 0 12px rgba(255, 69, 0, 0.3)" : "none",
-                    willChange: "transform, color",
-                }}
-            >
-                {link.label}
-            </m.span>
-        </Link>
-    );
-});
-NavLink.displayName = "NavLink";
-
 export default function Navbar() {
-
     const { largeText, toggleLargeText } = useAccessibility();
     const location = useLocation();
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isCompact, setIsCompact] = useState(() => {
+        if (typeof window !== "undefined") {
+            return window.scrollY > 150;
+        }
+        return false;
+    });
+    const [linkWidth, setLinkWidth] = useState(100);
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
-    const lastScrollY = useRef(0);
+    
     const navRef = useRef(null);
-    const rafRef = useRef(null);
-    // Refs to track current state without stale closures
-    const isScrolledRef = useRef(false);
-    const isVisibleRef = useRef(true);
 
     // Calculate active index for the capsule
     const activeIndex = useMemo(() => {
         return navLinks.findIndex(link => link.to === location.pathname);
     }, [location.pathname]);
 
-    // Handle smooth scroll shrink and auto-hide logic
+    // Handle responsive link width
     useEffect(() => {
-        const HERO_THRESHOLD = 400;
-
-        const handleScroll = () => {
-            if (!rafRef.current) {
-                rafRef.current = requestAnimationFrame(() => {
-                    const currentScrollY = window.scrollY;
-
-                    // 1. Shrink logic — read from ref to avoid stale closure
-                    const scrolled = currentScrollY > 80;
-                    if (scrolled !== isScrolledRef.current) {
-                        isScrolledRef.current = scrolled;
-                        setIsScrolled(scrolled);
-                    }
-
-                    // 2. Auto-hide logic
-                    if (currentScrollY < HERO_THRESHOLD) {
-                        if (!isVisibleRef.current) {
-                            isVisibleRef.current = true;
-                            setIsVisible(true);
-                        }
-                    } else {
-                        const scrollingDown = currentScrollY > lastScrollY.current;
-                        const scrollDifference = Math.abs(currentScrollY - lastScrollY.current);
-
-                        if (scrollDifference > 4) {
-                            const shouldBeVisible = !scrollingDown;
-                            if (shouldBeVisible !== isVisibleRef.current) {
-                                isVisibleRef.current = shouldBeVisible;
-                                setIsVisible(shouldBeVisible);
-                            }
-                        }
-                    }
-
-                    lastScrollY.current = currentScrollY;
-                    rafRef.current = null;
-                });
+        const handleResize = () => {
+            if (window.innerWidth <= 768) {
+                setLinkWidth(80);
+            } else {
+                setLinkWidth(100);
             }
         };
+        window.addEventListener("resize", handleResize);
+        handleResize();
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
+    // Detect scroll to apply scrolled background styling to navbar
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 80);
+        };
         window.addEventListener("scroll", handleScroll, { passive: true });
-        handleScroll(); // Initial check
+        handleScroll();
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    // Helper to calculate compact state translation offset (pinned to top-right)
+    const getTargetX = () => {
+        if (typeof window === "undefined") return 0;
+        const w = window.innerWidth;
+        const r = w <= 480 ? 10 : 20;
+        return (w / 2) - r - 52;
+    };
+
+    // ScrollTriggers to toggle compact navbar state at section starts
+    useEffect(() => {
+        let scrollTriggers = [];
+
+        const initScrollTriggers = () => {
+            // Find all major sections on the active page
+            let sectionEls = Array.from(document.querySelectorAll("section, #hero, #about-section"));
+            if (sectionEls.length === 0) {
+                const mainEl = document.querySelector("main") || document.getElementById("main") || document.body;
+                if (mainEl) sectionEls = [mainEl];
+            }
+
+            // Cleanup any existing triggers before registering new ones
+            scrollTriggers.forEach(t => t.kill());
+            scrollTriggers = [];
+
+            const threshold = 150; // top 150px of any section displays the full navbar
+            const currentScroll = window.scrollY;
+            let initiallyCompact = true;
+
+            // Check if scroll position starts inside the top threshold of any section
+            sectionEls.forEach((section) => {
+                const rect = section.getBoundingClientRect();
+                const sectionTop = rect.top + currentScroll;
+                if (currentScroll >= sectionTop && currentScroll <= sectionTop + threshold) {
+                    initiallyCompact = false;
+                }
+            });
+
+            setIsCompact(initiallyCompact);
+
+            // Register a ScrollTrigger for the top threshold zone of each section
+            sectionEls.forEach((section) => {
+                const trigger = ScrollTrigger.create({
+                    trigger: section,
+                    start: "top top",
+                    end: `top+=${threshold} top`,
+                    onToggle: (self) => {
+                        if (self.isActive) {
+                            setIsCompact(false);
+                            setMobileMenuOpen(false);
+                        }
+                    },
+                    onLeave: () => {
+                        setIsCompact(true);
+                    },
+                    onLeaveBack: () => {
+                        setIsCompact(true);
+                    }
+                });
+                scrollTriggers.push(trigger);
+            });
+
+            ScrollTrigger.refresh();
+        };
+
+        // Delay slightly to ensure page components are fully painted and layout is stable
+        const timer = setTimeout(initScrollTriggers, 400);
 
         return () => {
-            window.removeEventListener("scroll", handleScroll);
-            if (rafRef.current) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
-            }
+            clearTimeout(timer);
+            scrollTriggers.forEach(t => t.kill());
         };
-    }, []); // ✅ Empty deps — refs prevent stale closures, no re-registration
+    }, [location.pathname]);
 
     // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [location]);
 
-    // Derived animation properties for smooth transitions
-    const navbarAnimationValues = useMemo(() => {
-        if (!isScrolled) {
-            return {
-                paddingY: 12,
-                paddingX: 32,
-                height: 58,
-                maxWidth: 1180,
-                borderRadius: 9999,
-                widthOffset: 32,
+    // GSAP morph animation driven by isCompact state
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            if (isCompact) {
+                // Morph to compact hamburger button
+                gsap.killTweensOf([
+                    navRef.current,
+                    ".nav-logo-link-wrapper",
+                    ".desktop-nav-container",
+                    ".nav-actions-expanded",
+                    ".hamburger-btn"
+                ]);
+
+                // 1. Fade out the expanded children
+                gsap.to([".nav-logo-link-wrapper", ".desktop-nav-container", ".nav-actions-expanded"], {
+                    opacity: 0,
+                    scale: 0.9,
+                    duration: 0.15,
+                    pointerEvents: "none",
+                    overwrite: "auto",
+                    display: "none"
+                });
+
+                // 2. Animate the navbar container to a rounded-square button in the top-right
+                // Using x (pixel offset) and xPercent (0) together cleanly resets the center transform
+                gsap.to(navRef.current, {
+                    width: 52,
+                    height: 52,
+                    xPercent: 0,
+                    x: getTargetX(),
+                    borderRadius: 12,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    paddingLeft: 6,
+                    paddingRight: 6,
+                    maxWidth: 52,
+                    duration: 0.3,
+                    ease: "power2.inOut",
+                    overwrite: "auto"
+                });
+
+                // 3. Fade in and show the hamburger button
+                gsap.to(".hamburger-btn", {
+                    display: "flex",
+                    opacity: 1,
+                    scale: 1,
+                    pointerEvents: "auto",
+                    duration: 0.15,
+                    delay: 0.1,
+                    overwrite: "auto"
+                });
+            } else {
+                // Morph back to full expanded navbar
+                gsap.killTweensOf([
+                    navRef.current,
+                    ".nav-logo-link-wrapper",
+                    ".desktop-nav-container",
+                    ".nav-actions-expanded",
+                    ".hamburger-btn"
+                ]);
+
+                // 1. Fade out the hamburger button
+                gsap.to(".hamburger-btn", {
+                    opacity: 0,
+                    scale: 0.8,
+                    pointerEvents: "none",
+                    duration: 0.12,
+                    overwrite: "auto",
+                    display: "none"
+                });
+
+                // 2. Animate the navbar container back to its full size
+                // Resetting to xPercent: -50 and x: 0 forces correct horizontal centering at all resolutions
+                const isScrolledVal = window.scrollY > 80;
+                const height = isScrolledVal ? 52 : 58;
+                const maxWidth = isScrolledVal ? 1100 : 1200;
+                const borderRadius = isScrolledVal ? 24 : 9999;
+                const paddingY = isScrolledVal ? 6 : 12;
+                const paddingX = isScrolledVal ? 16 : 24;
+
+                gsap.to(navRef.current, {
+                    width: "calc(100% - 40px)",
+                    height: height,
+                    xPercent: -50,
+                    x: 0,
+                    borderRadius: borderRadius,
+                    paddingTop: paddingY,
+                    paddingBottom: paddingY,
+                    paddingLeft: paddingX,
+                    paddingRight: paddingX,
+                    maxWidth: maxWidth,
+                    duration: 0.3,
+                    ease: "power2.inOut",
+                    overwrite: "auto"
+                });
+
+                // 3. Show and fade in the expanded children
+                gsap.set([".nav-logo-link-wrapper", ".desktop-nav-container", ".nav-actions-expanded"], {
+                    display: "flex"
+                });
+                gsap.to([".nav-logo-link-wrapper", ".desktop-nav-container", ".nav-actions-expanded"], {
+                    opacity: 1,
+                    scale: 1,
+                    pointerEvents: "auto",
+                    duration: 0.15,
+                    delay: 0.12,
+                    overwrite: "auto"
+                });
+            }
+
+            // Handle window resize dynamically to update compact translation position
+            const handleResize = () => {
+                if (isCompact) {
+                    gsap.set(navRef.current, { xPercent: 0, x: getTargetX() });
+                } else {
+                    gsap.set(navRef.current, { xPercent: -50, x: 0 });
+                }
             };
-        } else {
-            return {
-                paddingY: 6,
-                paddingX: 20,
-                height: 52,
-                maxWidth: 1060,
-                borderRadius: 24,
-                widthOffset: 64,
-            };
-        }
-    }, [isScrolled]);
+            window.addEventListener("resize", handleResize);
+            return () => window.removeEventListener("resize", handleResize);
+        }, navRef);
+
+        return () => ctx.revert();
+    }, [isCompact]);
 
     return (
         <>
-            <m.nav
+            <nav
                 ref={navRef}
                 className={`navbar ${isScrolled ? 'scrolled' : ''}`}
                 aria-label="Main navigation"
                 role="navigation"
-                animate={{
-                    y: isVisible ? 0 : -100,
-                    opacity: isVisible ? 1 : 0.4,
-                }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                     position: "fixed",
                     top: 20,
                     left: "50%",
-                    transform: "translateX(-50%)",
                     zIndex: 9000,
-                    border: "1.5px solid transparent",
-                    willChange: isVisible ? "opacity" : "auto",
+                    border: "1.5px solid rgba(255, 255, 255, 0.04)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center", // ensure inner content is centered
-                    // Use CSS transitions for layout properties instead of Framer Motion
-                    paddingTop: navbarAnimationValues.paddingY,
-                    paddingBottom: navbarAnimationValues.paddingY,
-                    paddingLeft: navbarAnimationValues.paddingX,
-                    paddingRight: navbarAnimationValues.paddingX,
-                    maxWidth: navbarAnimationValues.maxWidth,
-                    borderRadius: navbarAnimationValues.borderRadius,
-                    width: `calc(100% - ${navbarAnimationValues.widthOffset}px)`,
-                    transition: `padding 0.32s cubic-bezier(0.22, 1, 0.36, 1), 
-                                 max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1), 
-                                 border-radius 0.32s cubic-bezier(0.22, 1, 0.36, 1), 
-                                 width 0.32s cubic-bezier(0.22, 1, 0.36, 1)`,
+                    justifyContent: "center",
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
+                    background: "rgba(10, 10, 15, 0.3)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    overflow: "hidden",
+                    // Initial styles based on isCompact to avoid render layout flash
+                    width: isCompact ? 52 : "calc(100% - 40px)",
+                    height: isCompact ? 52 : 58,
+                    borderRadius: isCompact ? 12 : 9999,
+                    paddingTop: isCompact ? 6 : 12,
+                    paddingBottom: isCompact ? 6 : 12,
+                    paddingLeft: isCompact ? 6 : 24,
+                    paddingRight: isCompact ? 6 : 24,
+                    maxWidth: isCompact ? 52 : 1200,
                 }}
             >
                 <style>{`
                     .navbar {
-                        background: rgba(10, 10, 15, 0.3);
-                        backdrop-filter: blur(8px);
-                        -webkit-backdrop-filter: blur(8px);
-                        border-color: rgba(255, 255, 255, 0.04);
-                        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                        transform: translateX(-50%);
+                        transition: background 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                                    backdrop-filter 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                                    border-color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                                    box-shadow 0.32s cubic-bezier(0.22, 1, 0.36, 1);
                     }
                     
                     .navbar.scrolled {
@@ -214,28 +316,20 @@ export default function Navbar() {
                         border-color: rgba(255, 255, 255, 0.1);
                         box-shadow: 0 8px 20px rgba(0,0,0,0.3);
                     }
-                    
-                    /* Smooth CSS transition for background/blur instead of Framer Motion */
-                    .navbar {
-                        transition: background 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-                                    backdrop-filter 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-                                    border-color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-                                    box-shadow 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-                    }
 
                     .navbar-inner {
-                        display: grid;
-                        grid-template-columns: 1fr auto 1fr;
+                        display: flex;
                         align-items: center;
+                        justify-content: space-between;
                         width: 100%;
                         height: 100%;
+                        position: relative;
                     }
 
                     .nav-logo-link {
                         text-decoration: none;
                         display: flex;
                         align-items: center;
-                        height: 100%;
                         outline: none;
                         border-radius: 9999px;
                         flex-shrink: 0;
@@ -278,19 +372,23 @@ export default function Navbar() {
                         border-radius: 9999px;
                         padding: 4px;
                         border: 1px solid var(--bg-card);
+                        overflow-x: auto;
+                        scrollbar-width: none; /* Firefox */
+                        -ms-overflow-style: none; /* IE10+ */
+                        max-width: calc(100% - 180px);
+                        flex-shrink: 1;
                     }
 
-                    /* 
-                       PREMIUM ACTIVE CAPSULE 
-                       Uses translate3d for GPU acceleration.
-                       Fixed dimensions ensure no stretching or jumping.
-                    */
+                    .desktop-nav-container::-webkit-scrollbar {
+                        display: none; /* Chrome, Safari, Opera */
+                    }
+
                     .active-capsule {
                         position: absolute;
-                        top: 4px; /* matches container padding */
-                        left: 4px; /* matches container padding */
-                        width: ${LINK_WIDTH}px;
-                        height: ${LINK_HEIGHT}px;
+                        top: 4px;
+                        left: 4px;
+                        width: var(--link-width, 100px);
+                        height: 44px;
                         border-radius: 9999px;
                         background: linear-gradient(180deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 69, 0, 0.05) 100%);
                         border: 1px solid rgba(255, 69, 0, 0.3);
@@ -300,14 +398,11 @@ export default function Navbar() {
                             inset 0 0 20px rgba(255, 69, 0, 0.05);
                         z-index: 1;
                         pointer-events: none;
-                        transform: translate3d(0, 0, 0);
-                        backface-visibility: hidden;
                     }
 
-                    .nav-actions {
+                    .nav-actions-expanded {
                         display: flex;
                         align-items: center;
-                        justify-content: flex-end;
                         gap: 8px;
                         flex-shrink: 0;
                     }
@@ -342,43 +437,69 @@ export default function Navbar() {
                         border-color: rgba(255, 69, 0, 0.2);
                     }
 
-                    @media (max-width: 900px) {
-                        .desktop-nav-container {
+                    .hamburger-btn {
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 8px;
+                        background: var(--border-primary);
+                        border: 1px solid var(--bg-card);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--text-secondary);
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    }
+                    
+                    .hamburger-btn:hover {
+                        background: var(--glass-bg-light);
+                        color: #ffffff;
+                    }
+
+                    @media (max-width: 768px) {
+                        .logo-text {
                             display: none;
+                        }
+                        .desktop-nav-container {
+                            max-width: calc(100% - 100px);
                         }
                     }
                 `}</style>
 
-                <m.div
-                    className="navbar-inner"
-                    initial={{ y: -15, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ height: navbarAnimationValues.height }}
-                >
-                    {/* Logo Section */}
-                    <Link to="/" className="nav-logo-link" aria-label="Nitin - Portfolio home">
-                        <m.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            style={{ display: 'flex', alignItems: 'center' }}
-                        >
-                            <div className="logo-circle">N</div>
-                            <span className="logo-text">NITIN</span>
-                        </m.div>
-                    </Link>
+                <div className="navbar-inner">
+                    {/* Logo Section Wrapper */}
+                    <div className="nav-logo-link-wrapper" style={{ display: isCompact ? "none" : "flex", opacity: isCompact ? 0 : 1 }}>
+                        <Link to="/" className="nav-logo-link" aria-label="Nitin - Portfolio home">
+                            <m.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                style={{ display: 'flex', alignItems: 'center' }}
+                            >
+                                <div className="logo-circle">N</div>
+                                <span className="logo-text">NITIN</span>
+                            </m.div>
+                        </Link>
+                    </div>
 
                     {/* Desktop Navigation Section */}
-                    <div className="desktop-nav-container" role="menubar">
+                    <div 
+                        className="desktop-nav-container" 
+                        role="menubar"
+                        style={{
+                            "--link-width": `${linkWidth}px`,
+                            display: isCompact ? "none" : "flex",
+                            opacity: isCompact ? 0 : 1
+                        }}
+                    >
                         {activeIndex >= 0 && (
                             <m.div
                                 className="active-capsule"
                                 animate={{
-                                    x: activeIndex * LINK_WIDTH
+                                    x: activeIndex * linkWidth
                                 }}
                                 transition={{
                                     type: "tween",
-                                    ease: [0.22, 1, 0.36, 1], // Apple-like cubic-bezier
+                                    ease: [0.22, 1, 0.36, 1],
                                     duration: 0.32
                                 }}
                                 initial={false}
@@ -386,16 +507,48 @@ export default function Navbar() {
                         )}
 
                         {navLinks.map((link, index) => (
-                            <NavLink
+                            <Link
                                 key={link.to}
-                                link={link}
-                                isActive={activeIndex === index}
-                            />
+                                to={link.to}
+                                className={`nav-link ${activeIndex === index ? "active" : ""}`}
+                                role="menuitem"
+                                style={{
+                                    width: linkWidth,
+                                    height: 44,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "0.85rem",
+                                    fontWeight: activeIndex === index ? 700 : 500,
+                                    color: activeIndex === index ? "var(--color-primary-orange)" : "var(--text-secondary)",
+                                    textDecoration: "none",
+                                    cursor: "pointer",
+                                    transition: "color 0.25s ease",
+                                    zIndex: 2,
+                                    position: "relative",
+                                    flexShrink: 0
+                                }}
+                            >
+                                <m.span
+                                    whileHover={{
+                                        y: -1,
+                                        color: activeIndex === index ? "var(--color-primary-orange)" : "#ffffff"
+                                    }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{
+                                        display: "inline-block",
+                                        textShadow: activeIndex === index ? "0 0 12px rgba(255, 69, 0, 0.3)" : "none",
+                                        willChange: "transform, color",
+                                    }}
+                                >
+                                    {link.label}
+                                </m.span>
+                            </Link>
                         ))}
                     </div>
 
-                    {/* Actions Section */}
-                    <div className="nav-actions">
+                    {/* Expanded Actions Section */}
+                    <div className="nav-actions-expanded" style={{ display: isCompact ? "none" : "flex", opacity: isCompact ? 0 : 1 }}>
                         <m.button
                             onClick={toggleLargeText}
                             whileHover={{ scale: 1.05 }}
@@ -405,54 +558,72 @@ export default function Navbar() {
                         >
                             <Sliders size={16} />
                         </m.button>
-
-
-
-                        <m.button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className={`action-button ${mobileMenuOpen ? 'active' : ''}`}
-                            aria-label="Menu"
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <m.line x1="4" y1="6" x2="20" y2="6" animate={{ rotate: mobileMenuOpen ? 45 : 0, y: mobileMenuOpen ? 6 : 0 }} transition={{ duration: 0.25 }} style={{ transformOrigin: "center" }} />
-                                <m.line x1="4" y1="12" x2="20" y2="12" animate={{ opacity: mobileMenuOpen ? 0 : 1 }} transition={{ duration: 0.25 }} />
-                                <m.line x1="4" y1="18" x2="20" y2="18" animate={{ rotate: mobileMenuOpen ? -45 : 0, y: mobileMenuOpen ? -6 : 0 }} transition={{ duration: 0.25 }} style={{ transformOrigin: "center" }} />
-                            </svg>
-                        </m.button>
                     </div>
-                </m.div>
-            </m.nav>
 
-            {/* Mobile Menu Drawer */}
+                    {/* Hamburger Button (Absolute positioned and shown only in compact state) */}
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className={`hamburger-btn`}
+                        aria-label="Menu"
+                        style={{
+                            position: "absolute",
+                            right: 0,
+                            top: 0,
+                            display: isCompact ? "flex" : "none",
+                            opacity: isCompact ? 1 : 0,
+                            transform: isCompact ? "scale(1)" : "scale(0.8)"
+                        }}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <m.line x1="4" y1="6" x2="20" y2="6" animate={{ rotate: mobileMenuOpen ? 45 : 0, y: mobileMenuOpen ? 6 : 0 }} transition={{ duration: 0.25 }} style={{ transformOrigin: "center" }} />
+                            <m.line x1="4" y1="12" x2="20" y2="12" animate={{ opacity: mobileMenuOpen ? 0 : 1 }} transition={{ duration: 0.25 }} />
+                            <m.line x1="4" y1="18" x2="20" y2="18" animate={{ rotate: mobileMenuOpen ? -45 : 0, y: mobileMenuOpen ? -6 : 0 }} transition={{ duration: 0.25 }} style={{ transformOrigin: "center" }} />
+                        </svg>
+                    </button>
+                </div>
+            </nav>
+
+            {/* Clicking outside Backdrop */}
+            {mobileMenuOpen && (
+                <div 
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 8998,
+                        background: "transparent",
+                    }}
+                />
+            )}
+
+            {/* Compact Mobile Menu Panel (Popout) */}
             <AnimatePresence>
                 {mobileMenuOpen && (
                     <m.div
-                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1, top: isScrolled ? 88 : 106 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         style={{
                             position: "fixed",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: "calc(100% - 40px)",
-                            maxWidth: 400,
+                            top: 80,
+                            right: window.innerWidth <= 480 ? 10 : 20,
+                            width: 220,
                             background: "rgba(10, 10, 15, 0.95)",
                             backdropFilter: "blur(32px)",
-                            borderRadius: 24,
+                            borderRadius: 16,
                             border: "1px solid var(--glass-bg-light)",
-                            padding: 16,
+                            padding: 12,
                             display: "flex",
                             flexDirection: "column",
-                            gap: 8,
+                            gap: 4,
                             zIndex: 8999,
                             boxShadow: "0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px var(--bg-card)",
+                            transformOrigin: "top right",
                         }}
                     >
                         {navLinks.map((link) => {
-                            const isMobileActive = location.pathname === link.to;
+                            const isLinkActive = location.pathname === link.to;
                             return (
                                 <Link
                                     key={link.to}
@@ -462,18 +633,20 @@ export default function Navbar() {
                                 >
                                     <m.div
                                         style={{
-                                            padding: "14px 20px",
-                                            borderRadius: 16,
+                                            padding: "12px 16px",
+                                            borderRadius: 10,
                                             display: "flex",
                                             alignItems: "center",
-                                            background: isMobileActive ? "linear-gradient(90deg, rgba(255, 69, 0, 0.15), rgba(255, 69, 0, 0.05))" : "transparent",
-                                            color: isMobileActive ? "var(--color-primary-orange)" : "var(--text-secondary)",
-                                            fontWeight: isMobileActive ? 600 : 500,
-                                            border: isMobileActive ? "1px solid rgba(255, 69, 0, 0.2)" : "1px solid transparent",
+                                            background: isLinkActive ? "linear-gradient(90deg, rgba(255, 69, 0, 0.15), rgba(255, 69, 0, 0.05))" : "transparent",
+                                            color: isLinkActive ? "var(--color-primary-orange)" : "var(--text-secondary)",
+                                            fontWeight: isLinkActive ? 600 : 500,
+                                            border: isLinkActive ? "1px solid rgba(255, 69, 0, 0.2)" : "1px solid transparent",
+                                            fontSize: "0.9rem",
                                             transition: "all 0.2s ease"
                                         }}
                                         whileHover={{
-                                            backgroundColor: !isMobileActive ? "var(--border-primary)" : undefined
+                                            backgroundColor: !isLinkActive ? "var(--border-primary)" : undefined,
+                                            color: !isLinkActive ? "#ffffff" : undefined
                                         }}
                                     >
                                         {link.label}
@@ -481,6 +654,25 @@ export default function Navbar() {
                                 </Link>
                             );
                         })}
+
+                        {/* Accessibility Controls inside panel */}
+                        <div style={{
+                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                            marginTop: 8,
+                            paddingTop: 8,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        }}>
+                            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>Large Text</span>
+                            <button
+                                onClick={toggleLargeText}
+                                className={`action-button ${largeText ? 'active' : ''}`}
+                                style={{ width: 32, height: 32 }}
+                            >
+                                <Sliders size={14} />
+                            </button>
+                        </div>
                     </m.div>
                 )}
             </AnimatePresence>
