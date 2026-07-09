@@ -5,9 +5,10 @@ import { AlertCircle, Check } from "lucide-react";
 /**
  * Premium Animated Input Field with Floating Label and Focus Border Glow
  */
-export function AnimatedInput({ label, name, type = "text", value, onChange, error, multiline = false, rows = 5, isValid = false, onFocus, onBlur }) {
+export function AnimatedInput({ label, name, type = "text", value, onChange, error, multiline = false, rows = 5, isValid = false, onFocus, onBlur, forceTouched = false }) {
     const [focused, setFocused] = useState(false);
     const [touched, setTouched] = useState(false);
+    const isTouched = touched || forceTouched;
     const Tag = multiline ? "textarea" : "input";
     const hasValue = value.trim().length > 0;
 
@@ -35,7 +36,7 @@ export function AnimatedInput({ label, name, type = "text", value, onChange, err
         ? error
             ? "0 0 15px rgba(239, 68, 68, 0.25)"
             : "0 0 20px rgba(224, 64, 251, 0.25)"
-        : isValid && touched
+        : isValid && isTouched
             ? "0 0 15px rgba(16, 185, 129, 0.2)"
             : "none";
 
@@ -83,7 +84,7 @@ export function AnimatedInput({ label, name, type = "text", value, onChange, err
                         scale: hasValue || focused ? 0.75 : 0.95,
                         color: error
                             ? "#ef4444"
-                            : isValid && touched
+                            : isValid && isTouched
                                 ? "#10b981"
                                 : focused
                                     ? "#E040FB"
@@ -135,7 +136,7 @@ export function AnimatedInput({ label, name, type = "text", value, onChange, err
                 />
 
                 {/* Validation Indicator Icon */}
-                {touched && (
+                {isTouched && (
                     <m.div
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -163,7 +164,7 @@ export function AnimatedInput({ label, name, type = "text", value, onChange, err
             </div>
 
             {/* Error Message with Fade Slide Animation */}
-            {error && touched && (
+            {error && isTouched && (
                 <m.div
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -184,7 +185,7 @@ export function AnimatedInput({ label, name, type = "text", value, onChange, err
             )}
 
             {/* Success Message */}
-            {isValid && touched && !error && (
+            {isValid && isTouched && !error && (
                 <m.div
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}

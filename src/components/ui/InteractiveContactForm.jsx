@@ -42,6 +42,12 @@ export default function InteractiveContactForm({ email }) {
     const [errors, setErrors] = useState({});
     const [status, setStatus] = useState("idle"); // idle, sending, success, error
     const [focusedField, setFocusedField] = useState(null);
+    const [touchedFields, setTouchedFields] = useState({
+        name: false,
+        email: false,
+        subject: false,
+        message: false
+    });
 
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -81,9 +87,19 @@ export default function InteractiveContactForm({ email }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Mark all fields as touched to show validation errors
+        setTouchedFields({
+            name: true,
+            email: true,
+            subject: true,
+            message: true
+        });
+
         const errs = validate();
         if (Object.keys(errs).length) {
             setErrors(errs);
+            toast.error("Please fix the errors in the form before sending.");
             return;
         }
 
@@ -106,6 +122,7 @@ export default function InteractiveContactForm({ email }) {
 
             setStatus("success");
             setForm({ name: "", email: "", subject: "", message: "", _honey: "" });
+            setTouchedFields({ name: false, email: false, subject: false, message: false });
             toast.success("Message sent! I'll get back to you soon 🚀");
             
         } catch (error) {
@@ -418,11 +435,15 @@ export default function InteractiveContactForm({ email }) {
                                             value={form.name}
                                             onChange={handleChange}
                                             onFocus={() => setFocusedField("name")}
-                                            onBlur={() => setFocusedField(null)}
-                                            error={errors.name}
+                                            onBlur={() => {
+                                                setFocusedField(null);
+                                                setTouchedFields(p => ({ ...p, name: true }));
+                                            }}
+                                            error={touchedFields.name ? errors.name : ""}
                                             isValid={
                                                 form.name.trim().length > 0 && !errors.name
                                             }
+                                            forceTouched={touchedFields.name}
                                         />
                                     </m.div>
                                     <m.div variants={itemVariants}>
@@ -434,13 +455,17 @@ export default function InteractiveContactForm({ email }) {
                                                 value={form.email}
                                                 onChange={handleChange}
                                                 onFocus={() => setFocusedField("email")}
-                                                onBlur={() => setFocusedField(null)}
-                                                error={errors.email}
+                                                onBlur={() => {
+                                                    setFocusedField(null);
+                                                    setTouchedFields(p => ({ ...p, email: true }));
+                                                }}
+                                                error={touchedFields.email ? errors.email : ""}
                                                 isValid={
                                                     form.email.trim().length > 0 &&
                                                     /\S+@\S+\.\S+/.test(form.email) &&
                                                     !errors.email
                                                 }
+                                                forceTouched={touchedFields.email}
                                             />
                                         </m.div>
                                     </m.div>
@@ -453,11 +478,15 @@ export default function InteractiveContactForm({ email }) {
                                         value={form.subject}
                                         onChange={handleChange}
                                         onFocus={() => setFocusedField("subject")}
-                                        onBlur={() => setFocusedField(null)}
-                                        error={errors.subject}
+                                        onBlur={() => {
+                                            setFocusedField(null);
+                                            setTouchedFields(p => ({ ...p, subject: true }));
+                                        }}
+                                        error={touchedFields.subject ? errors.subject : ""}
                                         isValid={
                                             form.subject.trim().length > 0 && !errors.subject
                                         }
+                                        forceTouched={touchedFields.subject}
                                     />
                                 </m.div>
 
@@ -468,13 +497,17 @@ export default function InteractiveContactForm({ email }) {
                                         value={form.message}
                                         onChange={handleChange}
                                         onFocus={() => setFocusedField("message")}
-                                        onBlur={() => setFocusedField(null)}
-                                        error={errors.message}
+                                        onBlur={() => {
+                                            setFocusedField(null);
+                                            setTouchedFields(p => ({ ...p, message: true }));
+                                        }}
+                                        error={touchedFields.message ? errors.message : ""}
                                         isValid={
                                             form.message.trim().length >= 10 && !errors.message
                                         }
                                         multiline
                                         rows={6}
+                                        forceTouched={touchedFields.message}
                                     />
                                 </m.div>
 
@@ -528,43 +561,31 @@ export default function InteractiveContactForm({ email }) {
                                 <m.div variants={itemVariants}>
                                     <m.button
                                         type="submit"
-                                        disabled={status === "sending" || !isFormValid}
-                                        whileHover={
-                                            isFormValid
-                                                ? { y: -4, scale: 1.01 }
-                                                : {}
-                                        }
-                                        whileTap={
-                                            isFormValid ? { scale: 0.98 } : {}
-                                        }
+                                        disabled={status === "sending"}
+                                        whileHover={{ y: -4, scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
                                         className="shine-sweep"
                                         style={{
                                             width: "100%",
                                             padding: "16px 32px",
-                                            background: isFormValid
-                                                ? "linear-gradient(135deg, #E040FB, #9C27B0)"
-                                                : "rgba(255,255,255,0.05)",
+                                            background: "linear-gradient(135deg, #E040FB, #9C27B0)",
                                             border: "1.5px solid transparent",
-                                            backgroundImage: isFormValid
-                                                ? "linear-gradient(135deg, #E040FB, #9C27B0)"
-                                                : "linear-gradient(rgba(10,10,15, 0.95), rgba(10,10,15, 0.95)), linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+                                            backgroundImage: "linear-gradient(135deg, #E040FB, #9C27B0)",
                                             backgroundClip: "padding-box, border-box",
                                             backgroundOrigin: "padding-box, border-box",
                                             borderRadius: "16px",
-                                            color: isFormValid ? "#fff" : "rgba(255,255,255,0.25)",
+                                            color: "#fff",
                                             fontWeight: 800,
                                             fontSize: "0.95rem",
                                             letterSpacing: "0.08em",
                                             textTransform: "uppercase",
-                                            cursor: isFormValid ? "pointer" : "not-allowed",
+                                            cursor: "pointer",
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
                                             gap: 10,
                                             transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                                            boxShadow: isFormValid
-                                                ? "0 12px 24px rgba(224,64,251,0.25), 0 4px 10px rgba(0,0,0,0.3)"
-                                                : "none",
+                                            boxShadow: "0 12px 24px rgba(224,64,251,0.25), 0 4px 10px rgba(0,0,0,0.3)",
                                             outline: "none",
                                             position: "relative",
                                             overflow: "hidden",

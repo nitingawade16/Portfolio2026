@@ -73,69 +73,24 @@ export default function Navbar() {
         return (w / 2) - r - 52;
     };
 
-    // ScrollTriggers to toggle compact navbar state at section starts
+    // Simplify navbar state logic: Expanded at top, compact when scrolled
     useEffect(() => {
-        let scrollTriggers = [];
-
-        const initScrollTriggers = () => {
-            // Find all major sections on the active page
-            let sectionEls = Array.from(document.querySelectorAll("section, #hero, #about-section"));
-            if (sectionEls.length === 0) {
-                const mainEl = document.querySelector("main") || document.getElementById("main") || document.body;
-                if (mainEl) sectionEls = [mainEl];
+        const handleScroll = () => {
+            // Expand at the very top, compact everywhere else
+            if (window.scrollY < 100) {
+                setIsCompact(false);
+                setIsScrolled(false);
+            } else {
+                setIsCompact(true);
+                setIsScrolled(true);
             }
-
-            // Cleanup any existing triggers before registering new ones
-            scrollTriggers.forEach(t => t.kill());
-            scrollTriggers = [];
-
-            const threshold = 150; // top 150px of any section displays the full navbar
-            const currentScroll = window.scrollY;
-            let initiallyCompact = true;
-
-            // Check if scroll position starts inside the top threshold of any section
-            sectionEls.forEach((section) => {
-                const rect = section.getBoundingClientRect();
-                const sectionTop = rect.top + currentScroll;
-                if (currentScroll >= sectionTop && currentScroll <= sectionTop + threshold) {
-                    initiallyCompact = false;
-                }
-            });
-
-            setIsCompact(initiallyCompact);
-
-            // Register a ScrollTrigger for the top threshold zone of each section
-            sectionEls.forEach((section) => {
-                const trigger = ScrollTrigger.create({
-                    trigger: section,
-                    start: "top top",
-                    end: `top+=${threshold} top`,
-                    onToggle: (self) => {
-                        if (self.isActive) {
-                            setIsCompact(false);
-                            setMobileMenuOpen(false);
-                        }
-                    },
-                    onLeave: () => {
-                        setIsCompact(true);
-                    },
-                    onLeaveBack: () => {
-                        setIsCompact(true);
-                    }
-                });
-                scrollTriggers.push(trigger);
-            });
-
-            ScrollTrigger.refresh();
         };
 
-        // Delay slightly to ensure page components are fully painted and layout is stable
-        const timer = setTimeout(initScrollTriggers, 400);
+        // Initial check
+        handleScroll();
 
-        return () => {
-            clearTimeout(timer);
-            scrollTriggers.forEach(t => t.kill());
-        };
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
     }, [location.pathname]);
 
     // Close mobile menu on route change
@@ -167,20 +122,22 @@ export default function Navbar() {
                 });
 
                 // 2. Animate the navbar container to a rounded-square button in the top-right
-                // Using x (pixel offset) and xPercent (0) together cleanly resets the center transform
+                // Need to reposition from center to top-right
                 gsap.to(navRef.current, {
+                    left: "auto",
+                    right: 24,
+                    transform: "none",
                     width: 52,
                     height: 52,
-                    xPercent: 0,
-                    x: getTargetX(),
                     borderRadius: 12,
                     paddingTop: 6,
                     paddingBottom: 6,
                     paddingLeft: 6,
                     paddingRight: 6,
                     maxWidth: 52,
-                    duration: 0.3,
-                    ease: "power2.inOut",
+                    duration: 0.4,
+                    delay: 0.1,
+                    ease: "back.inOut(1.2)",
                     overwrite: "auto"
                 });
 
@@ -204,38 +161,28 @@ export default function Navbar() {
                     ".hamburger-btn"
                 ]);
 
-                // 1. Fade out the hamburger button
+                // 1. Animate the navbar container back to its full size
+                gsap.to(navRef.current, {
+                    left: "50%",
+                    right: "auto",
+                    transform: "translateX(-50%)",
+                    width: "calc(100% - 40px)",
+                    maxWidth: 1200,
+                    height: 58,
+                    borderRadius: 9999,
+                    padding: "12px 24px",
+                    duration: 0.4,
+                    ease: "back.out(1.2)",
+                    overwrite: "auto"
+                });
+
+                // 2. Fade out compact button
                 gsap.to(".hamburger-btn", {
                     opacity: 0,
                     scale: 0.8,
+                    duration: 0.15,
                     pointerEvents: "none",
-                    duration: 0.12,
-                    overwrite: "auto",
-                    display: "none"
-                });
-
-                // 2. Animate the navbar container back to its full size
-                // Resetting to xPercent: -50 and x: 0 forces correct horizontal centering at all resolutions
-                const isScrolledVal = window.scrollY > 80;
-                const height = isScrolledVal ? 52 : 58;
-                const maxWidth = isScrolledVal ? 1100 : 1200;
-                const borderRadius = isScrolledVal ? 24 : 9999;
-                const paddingY = isScrolledVal ? 6 : 12;
-                const paddingX = isScrolledVal ? 16 : 24;
-
-                gsap.to(navRef.current, {
-                    width: "calc(100% - 40px)",
-                    height: height,
-                    xPercent: -50,
-                    x: 0,
-                    borderRadius: borderRadius,
-                    paddingTop: paddingY,
-                    paddingBottom: paddingY,
-                    paddingLeft: paddingX,
-                    paddingRight: paddingX,
-                    maxWidth: maxWidth,
-                    duration: 0.3,
-                    ease: "power2.inOut",
+                    display: "none",
                     overwrite: "auto"
                 });
 
